@@ -66,7 +66,7 @@ easy to test without driving a browser.
 
 ## Approximate Time Spent
 
-~90 minutes
+~70 minutes
 
 ## AI Tools Used
 
