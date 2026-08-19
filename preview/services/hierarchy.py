@@ -131,13 +131,10 @@ def _resolve_manager(
 def _detect_cycles(manager_of: dict[str, str | None]) -> list[str]:
     """Find employees that are members of a reporting cycle.
 
-    Uses iterative DFS with 3-color marking:
-      WHITE (0) = unvisited
-      GRAY  (1) = on the current traversal path
-      BLACK (2) = fully explored, not in a cycle
-
-    Only nodes on the cycle itself are returned — employees who merely
-    report into a cycle participant are NOT flagged.
+    Walks each employee's manager chain, tracking the path. If we revisit
+    a node already on the current path, everything from that node onward
+    is part of a cycle. Employees who merely report into a cycle
+    participant are NOT flagged.
     """
     visited: set[str] = set()
     cycle_set: set[str] = set()

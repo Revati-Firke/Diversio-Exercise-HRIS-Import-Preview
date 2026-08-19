@@ -162,21 +162,16 @@ class AnalysisResult:
 
 ## Cycle Detection Algorithm
 
-Uses iterative DFS with three coloring states:
+For each employee, we walk up the manager chain while recording the path.
+If we reach a node that's already on the current path, we've found a cycle —
+every node from that point onward in the path is a cycle member.
 
-| Color | Meaning |
-|---|---|
-| **White** | Unvisited |
-| **Gray** | In current DFS path (on the recursion stack) |
-| **Black** | Fully explored, not in a cycle |
-
-When a gray node is encountered during traversal, all nodes on the path from
-that node back to itself are members of a cycle. Only those nodes are marked —
-employees who merely report into a cycle participant are not flagged.
+Nodes that merely report into a cycle participant are not flagged because
+they never appear on the cycle portion of the path.
 
 **Complexity for N employees:**
-- Time: O(N) — each node visited once.
-- Space: O(N) — color map + parent tracking.
+- Time: O(N) — each node visited at most once across all walks.
+- Space: O(N) — visited set + current path.
 
 ---
 

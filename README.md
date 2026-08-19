@@ -17,7 +17,7 @@ pip install -r requirements.txt
 python manage.py runserver
 ```
 
-Then open http://127.0.0.1:8000/ and upload a CSV file (a `sample.csv` is
+Then open http://127.0.0.1:8000/ and upload a CSV file (`sample_hris.csv` is
 included in the repository).
 
 ## Test
