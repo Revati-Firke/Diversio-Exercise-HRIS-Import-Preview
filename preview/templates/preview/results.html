@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Import Preview — {{ filename }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.15rem; margin-top: 2rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; }
+    a { color: #2563eb; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 1rem; }
+    .card .label { font-size: 0.85rem; color: #555; }
+    .card .value { font-size: 1.75rem; font-weight: 700; margin-top: 0.25rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.4rem 0.75rem; border-bottom: 1px solid #e5e7eb; }
+    th { background: #f9fafb; font-weight: 600; }
+    tr:hover { background: #f3f4f6; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-red { background: #fef2f2; color: #991b1b; }
+    .badge-yellow { background: #fefce8; color: #854d0e; }
+    .badge-green { background: #f0fdf4; color: #166534; }
+    .empty { color: #888; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>Import Preview: {{ filename }}</h1>
+  <a href="{% url 'preview:upload' %}">← Upload another file</a>
+
+  {# ── Summary cards ── #}
+  <div class="summary">
+    <div class="card">
+      <div class="label">Total Source Rows</div>
+      <div class="value">{{ result.total_rows }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Accepted Employees</div>
+      <div class="value">{{ result.accepted_employees|length }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Validation Errors</div>
+      <div class="value">{{ result.validation_errors|length }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Root Employees</div>
+      <div class="value">{{ result.hierarchy.roots|length }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Cycle Participants</div>
+      <div class="value">{{ result.hierarchy.cycle_members|length }}</div>
+    </div>
+  </div>
+
+  {# ── Validation errors ── #}
+  <h2>Validation Errors <span class="badge badge-red">{{ result.validation_errors|length }}{% if result.hierarchy.errors %} + {{ result.hierarchy.errors|length }} manager{% endif %}</span></h2>
+  {% if result.validation_errors or result.hierarchy.errors %}
+  <table>
+    <thead><tr><th>Row</th><th>Employee ID</th><th>Type</th><th>Message</th></tr></thead>
+    <tbody>
+      {% for err in result.validation_errors %}
+      <tr><td>{{ err.row_number }}</td><td>{{ err.employee_id|default:"—" }}</td><td><span class="badge badge-red">Identity</span></td><td>{{ err.message }}</td></tr>
+      {% endfor %}
+      {% for err in result.hierarchy.errors %}
+      <tr><td>{{ err.row_number }}</td><td>{{ err.employee_id }}</td><td><span class="badge badge-yellow">Manager</span></td><td>{{ err.message }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No errors found.</p>
+  {% endif %}
+
+  {# ── Root employees ── #}
+  <h2>Root Employees <span class="badge badge-green">{{ result.hierarchy.roots|length }}</span></h2>
+  {% if result.hierarchy.roots %}
+  <table>
+    <thead><tr><th>Row</th><th>Employee ID</th><th>Name</th><th>Email</th><th>Department</th></tr></thead>
+    <tbody>
+      {% for emp in result.hierarchy.roots %}
+      <tr><td>{{ emp.row_number }}</td><td>{{ emp.employee_id }}</td><td>{{ emp.employee_name }}</td><td>{{ emp.email }}</td><td>{{ emp.department }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No root employees found.</p>
+  {% endif %}
+
+  {# ── Managers & direct reports ── #}
+  <h2>Managers &amp; Direct Reports</h2>
+  {% if result.hierarchy.manager_reports %}
+  <table>
+    <thead><tr><th>Employee ID</th><th>Name</th><th>Direct Reports</th></tr></thead>
+    <tbody>
+      {% for mgr in result.hierarchy.manager_reports %}
+      <tr><td>{{ mgr.employee_id }}</td><td>{{ mgr.employee_name }}</td><td>{{ mgr.direct_report_count }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No managers found.</p>
+  {% endif %}
+
+  {# ── Cycle participants ── #}
+  <h2>Reporting Cycle Participants <span class="badge badge-red">{{ result.hierarchy.cycle_members|length }}</span></h2>
+  {% if result.hierarchy.cycle_members %}
+  <table>
+    <thead><tr><th>Row</th><th>Employee ID</th><th>Name</th><th>Email</th><th>Department</th></tr></thead>
+    <tbody>
+      {% for emp in result.hierarchy.cycle_members %}
+      <tr><td>{{ emp.row_number }}</td><td>{{ emp.employee_id }}</td><td>{{ emp.employee_name }}</td><td>{{ emp.email }}</td><td>{{ emp.department }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No reporting cycles detected.</p>
+  {% endif %}
+
+</body>
+</html>
